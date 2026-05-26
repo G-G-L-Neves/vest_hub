@@ -1,0 +1,48 @@
+name: vesthub
+description: Calculadora de notas para vestibulares brasileiros
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Ícones bonitos
+  cupertino_icons: ^1.0.6
+  flutter_svg: ^2.0.9
+
+  # Armazenamento local simples (chave-valor)
+  shared_preferences: ^2.2.2
+
+  # Serialização JSON fácil
+  json_annotation: ^4.8.1
+
+  # Navegação moderna
+  go_router: ^13.0.0
+
+  # Gerenciamento de estado simples
+  provider: ^6.1.1
+
+  # Gráficos para mostrar simulações
+  fl_chart: ^0.66.2
+
+  # Animações extras
+  flutter_animate: ^4.4.1
+
+  # UUID para IDs únicos nos dados salvos
+  uuid: ^4.3.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  build_runner: ^2.4.7
+  json_serializable: ^6.7.1
+
+flutter:
+  uses-material-design: true
+  # assets:
+  #   - assets/
