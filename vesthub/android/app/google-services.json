@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "824420674681",
+    "project_id": "vesthub-e465f",
+    "storage_bucket": "vesthub-e465f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:824420674681:android:014215524d61786e45f8a8",
+        "android_client_info": {
+          "package_name": "com.example.vesthub"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDOHW1yaUZIzN2THtDMOQKzgWL1l6AIPPE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:824420674681:android:56779eb9adb1a01145f8a8",
+        "android_client_info": {
+          "package_name": "vest.hub"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDOHW1yaUZIzN2THtDMOQKzgWL1l6AIPPE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

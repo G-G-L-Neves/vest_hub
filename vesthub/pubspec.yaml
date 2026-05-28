@@ -34,6 +34,7 @@ dependencies:
 
   # UUID para IDs únicos nos dados salvos
   uuid: ^4.3.3
+  firebase_core: ^4.9.0
 
 dev_dependencies:
   flutter_test:
