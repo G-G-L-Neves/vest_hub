@@ -1,7 +1,9 @@
-// lib/widgets/widgets.dart — v0.0.4
+// lib/widgets/widgets.dart — v0.0.5
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import '../services/app_state.dart';
 import '../theme/app_theme.dart';
 
 class GlassBox extends StatelessWidget {
@@ -416,5 +418,50 @@ class EmptyState extends StatelessWidget {
         Text(subtitle, style: AppTheme.bodySmall, textAlign: TextAlign.center),
       ]),
     ));
+  }
+}
+
+/// Bloqueia a UI do simulador enquanto cursos/notas de corte vêm do Firestore.
+class RemoteCoursesGate extends StatelessWidget {
+  final bool hasCourses;
+  final Widget child;
+
+  const RemoteCoursesGate({
+    super.key,
+    required this.hasCourses,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<AppState>(
+      builder: (_, state, __) {
+        if (!state.cursosCarregados) {
+          return const Center(
+            child: CircularProgressIndicator(color: AppTheme.accent),
+          );
+        }
+
+        if (state.cursosErro != null) {
+          return EmptyState(
+            icon: Icons.cloud_off_outlined,
+            title: 'Erro ao carregar cursos',
+            subtitle: '${state.cursosErro}\nToque em atualizar na aba Simuladores.',
+          );
+        }
+
+        if (!hasCourses) {
+          return EmptyState(
+            icon: Icons.cloud_queue_outlined,
+            title: 'Nenhum curso no Firebase',
+            subtitle:
+                'Publique cursos e notas de corte no Firestore (coleção cursos). '
+                'O app atualiza automaticamente, sem nova versão na loja.',
+          );
+        }
+
+        return child;
+      },
+    );
   }
 }

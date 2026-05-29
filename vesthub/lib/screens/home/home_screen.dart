@@ -83,7 +83,8 @@ class HomeScreen extends StatelessWidget {
   Widget _buildEnemCard(BuildContext context) {
     return Consumer<AppState>(
       builder: (_, state, __) {
-        final media = CalcService.instance.calcEnemMedia(state.enemScores);
+        final notaMax = state.formulas.enem.notaMaxima;
+        final media = CalcService.instance.calcEnemMedia(state.enemScores, state.formulas);
         final hasScores = media > 0;
         return GlassBox(
           padding: const EdgeInsets.all(18),
@@ -98,9 +99,9 @@ class HomeScreen extends StatelessWidget {
                       style: AppTheme.bodyLarge),
               if (hasScores) ...[
                 const SizedBox(height: 10),
-                GlassProgressBar(value: media / 1000, aprovado: media >= 650 ? true : false),
+                GlassProgressBar(value: media / notaMax, aprovado: media >= notaMax * 0.65),
                 const SizedBox(height: 5),
-                Text('${(media / 10).toStringAsFixed(1)}% do maximo',
+                Text('${(media / notaMax * 100).toStringAsFixed(1)}% do maximo',
                     style: AppTheme.label),
                 const SizedBox(height: 12),
                 _EnemMiniRow(scores: state.enemScores),

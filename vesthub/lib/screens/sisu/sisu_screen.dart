@@ -33,6 +33,7 @@ class _SisuScreenState extends State<SisuScreen> {
   void _simulate() {
     if (_selectedCourse == null) return;
     final scores = context.read<AppState>().enemScores;
+    final formulas = context.read<AppState>().formulas;
     setState(() => _result = CalcService.instance.simularSisu(scores: scores, curso: _selectedCourse!));
   }
 
@@ -40,9 +41,9 @@ class _SisuScreenState extends State<SisuScreen> {
   Widget build(BuildContext context) {
     return GlassScaffold(
       title: 'Simulador SISU',
-      body: widget.courses.isEmpty
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.accent))
-          : SingleChildScrollView(
+      body: RemoteCoursesGate(
+        hasCourses: widget.courses.isNotEmpty,
+        child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(18, 80, 18, 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -133,12 +134,14 @@ class _SisuScreenState extends State<SisuScreen> {
                 ],
               ),
             ),
+      ),
     );
   }
 
   Widget _buildInfoBanner(BuildContext context) {
     final scores = context.watch<AppState>().enemScores;
-    final media = scores.media;
+    final formulas = context.watch<AppState>().formulas;
+    final media = CalcService.instance.calcEnemMedia(scores, formulas);
     final hasScores = media > 0;
     return GlassBox(
       fillColor: hasScores ? AppTheme.accent.withOpacity(0.1) : AppTheme.accentAmber.withOpacity(0.1),

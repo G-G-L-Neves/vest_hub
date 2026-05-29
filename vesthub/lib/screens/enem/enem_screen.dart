@@ -39,10 +39,12 @@ class _EnemScreenState extends State<EnemScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final media = CalcService.instance.calcEnemMedia(_scores);
+    final formulas = context.watch<AppState>().formulas;
+    final media = CalcService.instance.calcEnemMedia(_scores, formulas);
     final metaInfo = CalcService.instance.calcEnemMeta(
       scores: _scores,
       metaMedia: _metaMedia,
+      formulas: formulas,
     );
 
     return Scaffold(
@@ -65,26 +67,26 @@ class _EnemScreenState extends State<EnemScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Card média geral ─────────────────────────────────────────────
-            _buildMediaCard(media),
+            _buildMediaCard(media, formulas.enem.notaMaxima),
             const SizedBox(height: 24),
 
             // ── Inputs das notas ─────────────────────────────────────────────
-            const SectionHeader(
+            SectionHeader(
               title: 'Notas por área',
-              subtitle: 'Insira suas notas (0 a 1000)',
+              subtitle: 'Insira suas notas (0 a ${formulas.enem.notaMaxima.toInt()})',
             ),
             const SizedBox(height: 16),
-            _buildScoreInputs(),
+            _buildScoreInputs(formulas.enem.notaMaxima),
             const SizedBox(height: 28),
 
             // ── Barra de progresso por área ──────────────────────────────────
             const SectionHeader(title: 'Distribuição das notas'),
             const SizedBox(height: 16),
-            _buildAreaBars(media),
+            _buildAreaBars(formulas.enem.notaMaxima),
             const SizedBox(height: 28),
 
             // ── Meta de nota ─────────────────────────────────────────────────
-            _buildMetaSection(metaInfo),
+            _buildMetaSection(metaInfo, formulas.enem.notaMaxima),
             const SizedBox(height: 32),
           ],
         ),
@@ -93,7 +95,7 @@ class _EnemScreenState extends State<EnemScreen> {
   }
 
   // ─── Card com a média em destaque ──────────────────────────────────────────
-  Widget _buildMediaCard(double media) {
+  Widget _buildMediaCard(double media, double notaMaxima) {
     final color = media >= 700
         ? AppTheme.accentGreen
         : media >= 600
@@ -137,7 +139,7 @@ class _EnemScreenState extends State<EnemScreen> {
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Text(
-                  '/ 1000',
+                  '/ ${notaMaxima.toInt()}',
                   style: TextStyle(color: color.withOpacity(0.5), fontSize: 16),
                 ),
               ),
@@ -148,7 +150,7 @@ class _EnemScreenState extends State<EnemScreen> {
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
-              value: (media / 1000).clamp(0, 1),
+              value: (media / notaMaxima).clamp(0, 1),
               backgroundColor: AppTheme.bgElevated,
               valueColor: AlwaysStoppedAnimation(color),
               minHeight: 6,
@@ -160,7 +162,7 @@ class _EnemScreenState extends State<EnemScreen> {
   }
 
   // ─── Inputs de nota por área ───────────────────────────────────────────────
-  Widget _buildScoreInputs() {
+  Widget _buildScoreInputs(double notaMaxima) {
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.bgCard,
@@ -173,6 +175,7 @@ class _EnemScreenState extends State<EnemScreen> {
             emoji: '📖',
             label: 'Linguagens e Códigos',
             value: _scores.linguagens,
+            notaMaxima: notaMaxima,
             onChanged: (v) => _updateScore(_scores.copyWith(linguagens: v)),
           ),
           const Divider(height: 24),
@@ -180,6 +183,7 @@ class _EnemScreenState extends State<EnemScreen> {
             emoji: '🌍',
             label: 'Ciências Humanas',
             value: _scores.humanidades,
+            notaMaxima: notaMaxima,
             onChanged: (v) => _updateScore(_scores.copyWith(humanidades: v)),
           ),
           const Divider(height: 24),
@@ -187,6 +191,7 @@ class _EnemScreenState extends State<EnemScreen> {
             emoji: '⚗️',
             label: 'Ciências da Natureza',
             value: _scores.natureza,
+            notaMaxima: notaMaxima,
             onChanged: (v) => _updateScore(_scores.copyWith(natureza: v)),
           ),
           const Divider(height: 24),
@@ -194,6 +199,7 @@ class _EnemScreenState extends State<EnemScreen> {
             emoji: '📐',
             label: 'Matemática',
             value: _scores.matematica,
+            notaMaxima: notaMaxima,
             onChanged: (v) => _updateScore(_scores.copyWith(matematica: v)),
           ),
           const Divider(height: 24),
@@ -201,6 +207,7 @@ class _EnemScreenState extends State<EnemScreen> {
             emoji: '✍️',
             label: 'Redação',
             value: _scores.redacao,
+            notaMaxima: notaMaxima,
             onChanged: (v) => _updateScore(_scores.copyWith(redacao: v)),
             note: 'Múltiplos de 40',
           ),
@@ -213,6 +220,7 @@ class _EnemScreenState extends State<EnemScreen> {
     required String emoji,
     required String label,
     required double value,
+    required double notaMaxima,
     required ValueChanged<double> onChanged,
     String? note,
   }) {
@@ -244,7 +252,7 @@ class _EnemScreenState extends State<EnemScreen> {
             label: '',
             hint: '0.0',
             min: 0,
-            max: 1000,
+            max: notaMaxima,
             value: value,
             onChanged: onChanged,
           ),
@@ -254,7 +262,7 @@ class _EnemScreenState extends State<EnemScreen> {
   }
 
   // ─── Barras de área ────────────────────────────────────────────────────────
-  Widget _buildAreaBars(double media) {
+  Widget _buildAreaBars(double notaMaxima) {
     final areas = [
       ('Linguagens', _scores.linguagens, AppTheme.accent),
       ('Humanas', _scores.humanidades, AppTheme.accentGreen),
@@ -294,7 +302,7 @@ class _EnemScreenState extends State<EnemScreen> {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(4),
                   child: LinearProgressIndicator(
-                    value: (area.$2 / 1000).clamp(0, 1),
+                    value: (area.$2 / notaMaxima).clamp(0, 1),
                     backgroundColor: AppTheme.bgElevated,
                     valueColor: AlwaysStoppedAnimation(area.$3),
                     minHeight: 6,
@@ -309,7 +317,7 @@ class _EnemScreenState extends State<EnemScreen> {
   }
 
   // ─── Seção de meta ─────────────────────────────────────────────────────────
-  Widget _buildMetaSection(Map<String, dynamic> metaInfo) {
+  Widget _buildMetaSection(Map<String, dynamic> metaInfo, double notaMaxima) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -337,7 +345,7 @@ class _EnemScreenState extends State<EnemScreen> {
                 ScoreSlider(
                   label: 'Meta de média: ${_metaMedia.toStringAsFixed(0)}',
                   min: 400,
-                  max: 1000,
+                  max: notaMaxima,
                   value: _metaMedia,
                   onChanged: (v) => setState(() => _metaMedia = v),
                 ),

@@ -20,10 +20,6 @@ class EnemScores {
     this.redacao = 0,
   });
 
-  /// Média simples das 5 áreas
-  double get media =>
-      (linguagens + humanidades + natureza + matematica + redacao) / 5;
-
   /// Cria uma cópia com campos atualizados
   EnemScores copyWith({
     double? linguagens,
@@ -169,9 +165,6 @@ class SsaScores {
     this.ssa3 = 0,
   });
 
-  /// Fórmula oficial: SSA1×1 + SSA2×2 + SSA3×3 / 6
-  double get mediaPonderada => (ssa1 * 1 + ssa2 * 2 + ssa3 * 3) / 6;
-
   SsaScores copyWith({double? ssa1, double? ssa2, double? ssa3}) {
     return SsaScores(
       ssa1: ssa1 ?? this.ssa1,
@@ -204,9 +197,6 @@ class PasScores {
     this.sub2 = 0,
     this.sub3 = 0,
   });
-
-  /// Fórmula oficial: SUB1×1 + SUB2×2 + SUB3×3 / 6
-  double get mediaPonderada => (sub1 * 1 + sub2 * 2 + sub3 * 3) / 6;
 
   PasScores copyWith({double? sub1, double? sub2, double? sub3}) {
     return PasScores(
@@ -248,8 +238,6 @@ class FuvestScores {
   });
 
   double get fase1Total => portugues + matematica + ciencias + historia;
-  // Nota final FUVEST: Fase 1 convertida + Fase 2
-  double get notaFinal => (fase1Total / 60) * 100 * 0.3 + fase2Total * 0.7;
 
   FuvestScores copyWith({
     double? portugues,
@@ -305,9 +293,6 @@ class UnicampScores {
   /// Nota fase 2 = redação + disc1 + disc2
   double get fase2Total => redacao + disc1 + disc2;
 
-  /// Total geral
-  double get total => fase1 + fase2Total;
-
   UnicampScores copyWith({
     double? fase1,
     double? redacao,
@@ -348,10 +333,6 @@ class UnespScores {
     this.redacao = 0,
     this.fase2Disc = 0,
   });
-
-  /// Nota final (fase1 + redação + discursiva)
-  double get notaFinal => fase1 + redacao + fase2Disc;
-  double get notaMaxima => 72 + 30 + 96; // 198
 
   UnespScores copyWith({
     double? fase1,

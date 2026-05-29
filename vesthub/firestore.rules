@@ -1,0 +1,17 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Cursos e notas de corte — leitura para usuários autenticados.
+    // Edite os dados no Firebase Console; o app sincroniza em tempo real.
+    match /cursos/{vestibular}/items/{itemId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+
+    match /config/formulas {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+  }
+}

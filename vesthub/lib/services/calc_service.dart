@@ -1,216 +1,164 @@
-// lib/services/calc_service.dart
-//
-// Toda a lógica de cálculo das notas está aqui.
-// Funções puras (sem estado) que recebem notas e devolvem resultados.
-// Fácil de testar e manter separado da UI.
+// lib/services/calc_service.dart — cálculos usando fórmulas do Firestore
 
+import '../models/formula_config.dart';
 import '../models/models.dart';
 
 class CalcService {
-  // Instância singleton (padrão simples sem injeção de dependência)
   static const CalcService instance = CalcService._();
   const CalcService._();
 
-  // ─── ENEM ──────────────────────────────────────────────────────────────────
+  double calcEnemMedia(EnemScores scores, ExamFormulas formulas) {
+    final e = formulas.enem;
+    final numerador = (scores.linguagens * e.pesoLinguagens) +
+        (scores.humanidades * e.pesoHumanidades) +
+        (scores.natureza * e.pesoNatureza) +
+        (scores.matematica * e.pesoMatematica) +
+        (scores.redacao * e.pesoRedacao);
+    return numerador / e.totalPeso;
+  }
 
-  /// Retorna a média simples das 5 áreas do ENEM
-  double calcEnemMedia(EnemScores scores) => scores.media;
-
-  /// Calcula quanto o aluno precisa tirar em cada área para atingir a meta
-  /// (distribui o déficit igualmente nas áreas que ainda não foram preenchidas)
   Map<String, double> calcEnemMeta({
     required EnemScores scores,
     required double metaMedia,
+    required ExamFormulas formulas,
   }) {
-    final total = metaMedia * 5;
-    final atual = scores.linguagens +
-        scores.humanidades +
-        scores.natureza +
-        scores.matematica +
-        scores.redacao;
-    final falta = (total - atual).clamp(0, 5000);
+    final e = formulas.enem;
+    final total = metaMedia * e.totalPeso;
+    final atual = (scores.linguagens * e.pesoLinguagens) +
+        (scores.humanidades * e.pesoHumanidades) +
+        (scores.natureza * e.pesoNatureza) +
+        (scores.matematica * e.pesoMatematica) +
+        (scores.redacao * e.pesoRedacao);
+    final falta = (total - atual).clamp(0, e.notaMaxima * e.totalPeso);
     return {
       'falta': falta.toDouble(),
-      'mediaFalta': falta / 5,
+      'mediaFalta': falta / e.totalPeso,
       'atual': atual,
       'meta': total,
     };
   }
 
-  // ─── SISU ──────────────────────────────────────────────────────────────────
+  double calcSisuNota(EnemScores scores, SisuWeights pesos) =>
+      pesos.calcularMedia(scores);
 
-  /// Calcula a nota ponderada SISU com os pesos do curso escolhido
-  double calcSisuNota(EnemScores scores, SisuWeights pesos) {
-    return pesos.calcularMedia(scores);
-  }
-
-  /// Simula se o aluno passaria no curso e retorna o resultado
   SimulationResult simularSisu({
     required EnemScores scores,
     required SisuCourse curso,
   }) {
     final notaCalc = calcSisuNota(scores, curso.pesos);
-    final diferenca = notaCalc - curso.notaCorte;
-    final percentual =
-        (notaCalc / curso.notaCorte * 100).clamp(0, 200).toDouble();
-
-    return SimulationResult(
-      notaCalculada: notaCalc,
-      notaCorte: curso.notaCorte,
-      aprovado: notaCalc >= curso.notaCorte,
-      diferenca: diferenca,
-      percentualAtingido: percentual,
-      mensagem: _gerarMensagem(diferenca, 'SISU', curso.nome),
-    );
+    return _resultado(notaCalc, curso.notaCorte, 'SISU', curso.nome);
   }
 
-  // ─── SSA (UPE) ─────────────────────────────────────────────────────────────
-
-  /// Média ponderada SSA: SSA1×1 + SSA2×2 + SSA3×3 / 6
-  double calcSsaMedia(SsaScores scores) => scores.mediaPonderada;
+  double calcSsaMedia(SsaScores scores, ExamFormulas formulas) {
+    final s = formulas.ssa;
+    return (scores.ssa1 * s.pesoFase1 +
+            scores.ssa2 * s.pesoFase2 +
+            scores.ssa3 * s.pesoFase3) /
+        s.totalPeso;
+  }
 
   SimulationResult simularSsa({
     required SsaScores scores,
     required Course curso,
+    required ExamFormulas formulas,
   }) {
-    final notaCalc = scores.mediaPonderada;
-    final diferenca = notaCalc - curso.notaCorte;
-    final percentual =
-        (notaCalc / curso.notaCorte * 100).clamp(0, 200).toDouble();
-
-    return SimulationResult(
-      notaCalculada: notaCalc,
-      notaCorte: curso.notaCorte,
-      aprovado: notaCalc >= curso.notaCorte,
-      diferenca: diferenca,
-      percentualAtingido: percentual,
-      mensagem: _gerarMensagem(diferenca, 'SSA/UPE', curso.nome),
-    );
+    final notaCalc = calcSsaMedia(scores, formulas);
+    return _resultado(notaCalc, curso.notaCorte, 'SSA/UPE', curso.nome);
   }
 
-  // ─── PAS UnB ───────────────────────────────────────────────────────────────
-
-  /// Média ponderada PAS: SUB1×1 + SUB2×2 + SUB3×3 / 6
-  double calcPasMedia(PasScores scores) => scores.mediaPonderada;
+  double calcPasMedia(PasScores scores, ExamFormulas formulas) {
+    final p = formulas.pas;
+    return (scores.sub1 * p.pesoFase1 +
+            scores.sub2 * p.pesoFase2 +
+            scores.sub3 * p.pesoFase3) /
+        p.totalPeso;
+  }
 
   SimulationResult simularPas({
     required PasScores scores,
     required Course curso,
+    required ExamFormulas formulas,
   }) {
-    final notaCalc = scores.mediaPonderada;
-    final diferenca = notaCalc - curso.notaCorte;
-    final percentual =
-        (notaCalc / curso.notaCorte * 100).clamp(0, 200).toDouble();
-
-    return SimulationResult(
-      notaCalculada: notaCalc,
-      notaCorte: curso.notaCorte,
-      aprovado: notaCalc >= curso.notaCorte,
-      diferenca: diferenca,
-      percentualAtingido: percentual,
-      mensagem: _gerarMensagem(diferenca, 'PAS UnB', curso.nome),
-    );
+    final notaCalc = calcPasMedia(scores, formulas);
+    return _resultado(notaCalc, curso.notaCorte, 'PAS UnB', curso.nome);
   }
 
-  // ─── FUVEST ────────────────────────────────────────────────────────────────
-
-  /// Nota final FUVEST (percentual de aproveitamento 0-100)
-  double calcFuvestNota(FuvestScores scores) => scores.notaFinal;
+  double calcFuvestNota(FuvestScores scores, ExamFormulas formulas) {
+    final f = formulas.fuvest;
+    final fase1Pct = (scores.fase1Total / f.fase1MaxTotal) * 100;
+    return fase1Pct * f.pesoFase1 + scores.fase2Total * f.pesoFase2;
+  }
 
   SimulationResult simularFuvest({
     required FuvestScores scores,
     required Course curso,
+    required ExamFormulas formulas,
   }) {
-    final notaCalc = scores.notaFinal;
-    final diferenca = notaCalc - curso.notaCorte;
-    final percentual =
-        (notaCalc / curso.notaCorte * 100).clamp(0, 200).toDouble();
-
-    return SimulationResult(
-      notaCalculada: notaCalc,
-      notaCorte: curso.notaCorte,
-      aprovado: notaCalc >= curso.notaCorte,
-      diferenca: diferenca,
-      percentualAtingido: percentual,
-      mensagem: _gerarMensagem(diferenca, 'FUVEST', curso.nome),
-    );
+    final notaCalc = calcFuvestNota(scores, formulas);
+    return _resultado(notaCalc, curso.notaCorte, 'FUVEST', curso.nome);
   }
 
-  // ─── UNICAMP ───────────────────────────────────────────────────────────────
-
-  /// Total UNICAMP = Fase 1 + Fase 2
-  double calcUnicampTotal(UnicampScores scores) => scores.total;
+  double calcUnicampTotal(UnicampScores scores) =>
+      scores.fase1 + scores.fase2Total;
 
   SimulationResult simularUnicamp({
     required UnicampScores scores,
     required Course curso,
   }) {
-    final notaCalc = scores.total;
-    final diferenca = notaCalc - curso.notaCorte;
-    final percentual =
-        (notaCalc / curso.notaCorte * 100).clamp(0, 200).toDouble();
-
-    return SimulationResult(
-      notaCalculada: notaCalc,
-      notaCorte: curso.notaCorte,
-      aprovado: notaCalc >= curso.notaCorte,
-      diferenca: diferenca,
-      percentualAtingido: percentual,
-      mensagem: _gerarMensagem(diferenca, 'UNICAMP', curso.nome),
-    );
+    final notaCalc = calcUnicampTotal(scores);
+    return _resultado(notaCalc, curso.notaCorte, 'UNICAMP', curso.nome);
   }
 
-  // ─── UNESP ─────────────────────────────────────────────────────────────────
-
-  /// Nota final UNESP = Fase1 + Redação + Discursiva
-  double calcUnespTotal(UnespScores scores) => scores.notaFinal;
+  double calcUnespTotal(UnespScores scores) =>
+      scores.fase1 + scores.redacao + scores.fase2Disc;
 
   SimulationResult simularUnesp({
     required UnespScores scores,
     required Course curso,
   }) {
-    final notaCalc = scores.notaFinal;
-    final diferenca = notaCalc - curso.notaCorte;
-    final percentual =
-        (notaCalc / curso.notaCorte * 100).clamp(0, 200).toDouble();
+    final notaCalc = calcUnespTotal(scores);
+    return _resultado(notaCalc, curso.notaCorte, 'UNESP', curso.nome);
+  }
 
+  SimulationResult _resultado(
+    double notaCalc,
+    double notaCorte,
+    String vestibular,
+    String curso,
+  ) {
+    final diferenca = notaCalc - notaCorte;
+    final percentual =
+        (notaCalc / notaCorte * 100).clamp(0, 200).toDouble();
     return SimulationResult(
       notaCalculada: notaCalc,
-      notaCorte: curso.notaCorte,
-      aprovado: notaCalc >= curso.notaCorte,
+      notaCorte: notaCorte,
+      aprovado: notaCalc >= notaCorte,
       diferenca: diferenca,
       percentualAtingido: percentual,
-      mensagem: _gerarMensagem(diferenca, 'UNESP', curso.nome),
+      mensagem: _gerarMensagem(diferenca, vestibular, curso),
     );
   }
 
-  // ─── Funções utilitárias ────────────────────────────────────────────────────
-
-  /// Retorna uma mensagem amigável baseada na diferença
   String _gerarMensagem(double diferenca, String vestibular, String curso) {
     if (diferenca >= 20) {
-      return '🏆 Excelente! Você estaria bem acima da nota de corte para $curso ($vestibular).';
+      return 'Excelente! Você estaria bem acima da nota de corte para $curso ($vestibular).';
     } else if (diferenca >= 5) {
-      return '✅ Aprovado! Sua nota está acima da nota de corte para $curso ($vestibular).';
+      return 'Aprovado! Sua nota está acima da nota de corte para $curso ($vestibular).';
     } else if (diferenca >= 0) {
-      return '⚠️ Muito próximo! Você passaria em $curso ($vestibular), mas com margem pequena.';
+      return 'Muito próximo! Você passaria em $curso ($vestibular), mas com margem pequena.';
     } else if (diferenca >= -15) {
-      return '📚 Quase lá! Faltam ${diferenca.abs().toStringAsFixed(1)} pontos para $curso ($vestibular).';
+      return 'Quase lá! Faltam ${diferenca.abs().toStringAsFixed(1)} pontos para $curso ($vestibular).';
     } else {
-      return '💪 Ainda há caminho! Você precisa de ${diferenca.abs().toStringAsFixed(1)} pontos a mais para $curso ($vestibular).';
+      return 'Ainda há caminho! Você precisa de ${diferenca.abs().toStringAsFixed(1)} pontos a mais para $curso ($vestibular).';
     }
   }
 
-  /// Retorna a cor de status baseada no percentual atingido
-  /// Use com AppTheme.accentGreen, .accentAmber, .accentRed
   String statusColor(double percentual) {
     if (percentual >= 100) return 'green';
     if (percentual >= 90) return 'amber';
     return 'red';
   }
 
-  /// Formata uma nota com casas decimais configuráveis
-  String formatarNota(double nota, {int decimais = 1}) {
-    return nota.toStringAsFixed(decimais);
-  }
+  String formatarNota(double nota, {int decimais = 1}) =>
+      nota.toStringAsFixed(decimais);
 }

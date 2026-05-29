@@ -1,10 +1,9 @@
-// lib/data/mock_data.dart
+// tool/seed_firestore_data.dart
 //
-// Dados mockados de universidades e cursos.
-// Em produção, substitua por uma API ou banco de dados.
-// Os pesos e notas de corte são aproximações baseadas em dados históricos.
+// Dados iniciais para popular o Firestore (não faz parte do app em produção).
+// Para alterar notas de corte no dia a dia, use o Firebase Console.
 
-import '../models/models.dart';
+import 'package:vesthub/models/models.dart';
 
 // ─── Cursos SISU ──────────────────────────────────────────────────────────────
 // Pesos: cada área tem peso entre 1 e 3 dependendo do curso
@@ -396,27 +395,3 @@ final List<Course> pasCourses = [
   ),
 ];
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-/// Retorna a lista de cursos para cada tipo de vestibular
-List<Course> getCoursesByType(String tipo) {
-  switch (tipo) {
-    case 'fuvest': return fuvestCourses;
-    case 'unicamp': return unicampCourses;
-    case 'unesp': return unespCourses;
-    case 'ssa': return ssaCourses;
-    case 'pas': return pasCourses;
-    default: return [];
-  }
-}
-
-/// Filtra cursos SISU por nome ou universidade
-List<SisuCourse> searchSisuCourses(String query) {
-  if (query.isEmpty) return sisuCourses;
-  final q = query.toLowerCase();
-  return sisuCourses.where((c) {
-    return c.nome.toLowerCase().contains(q) ||
-        c.universidade.toLowerCase().contains(q) ||
-        c.cidade.toLowerCase().contains(q);
-  }).toList();
-}
