@@ -35,6 +35,8 @@ dependencies:
   # UUID para IDs únicos nos dados salvos
   uuid: ^4.3.3
   firebase_core: ^4.9.0
+  firebase_auth: ^6.1.4
+  cloud_firestore: ^6.4.1
 
 dev_dependencies:
   flutter_test:

@@ -85,4 +85,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'vesthub-e465f.firebasestorage.app',
     measurementId: 'G-R5T1EZHK8L',
   );
+
 }

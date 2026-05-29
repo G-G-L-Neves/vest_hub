@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/app_state.dart';
+import '../../services/auth_service.dart';
 import '../../services/calc_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/widgets.dart';
@@ -63,6 +64,15 @@ class HomeScreen extends StatelessWidget {
             child: Text(
               state.primeiroNome.isNotEmpty ? state.primeiroNome[0].toUpperCase() : 'V',
               style: const TextStyle(color: AppTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.w500),
+            ),
+          ),
+          const SizedBox(width: 8),
+          GlassBox(
+            padding: const EdgeInsets.all(8),
+            borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              onTap: () => AuthService.instance.signOut(),
+              child: const Icon(Icons.logout, color: AppTheme.textSecondary, size: 20),
             ),
           ),
         ],
